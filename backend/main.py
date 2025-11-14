@@ -16,6 +16,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Max-Cluster"], 
 )
 
 @app.get("/")
@@ -56,8 +57,20 @@ async def uploadImage(file: UploadFile = File(...)):
     
 @app.get("/api/image-process/threshold-otsu")
 async def otsuThresholding(imagePath: str):
-    response = ImageProcessing.threshold_otsu(imagePath)
+    response = ImageProcessing.thresholdOtsu(imagePath)
     if not response["success"]:
         return res(content={"message": response["message"]}, status_code=400)
     else:
         return StreamingResponse(response["bytes"], media_type="image/png")
+    
+@app.get("/api/image-process/segmentation/kmeanpp")
+async def kmeanStardard(imagePath: str, nCluster:int = 2):
+    response = ImageProcessing.KmeanPlusPlus(imagePath, nCluster)
+    if not response["success"]:
+        return res(content={"message": response["message"]}, status_code=400)
+    else:
+        headers = {
+            'X-Max-Cluster': str(response['clusters'])
+        }
+        print(headers)
+        return StreamingResponse(response["bytes"], media_type="image/png", headers=headers)

@@ -33,6 +33,10 @@ export default function Home() {
   const [rightOpts, setRightOpts] = useState(1);
   const [left, setLeft] = useState(null);
   const [right, setRight] = useState(null);
+  const [leftCluster, setLeftCluster] = useState(2);
+  const [rightCluster, setRightCluster] = useState(2);
+  const [leftMaxCluster, setLeftMaxCluster] = useState();
+  const [rightMaxCluster, setRightMaxCluster] = useState();
 
   const [original, setOriginal] = useState(null);
   const [imagePath, setImagePath] = useState(null);
@@ -78,25 +82,62 @@ export default function Home() {
     // otsu
     let API = `/image-process/threshold-otsu`;
     // or kmean
-    if (e.target.value == 3) return; // reset api
+    if (e.target.value === 3) API = "/image-process/segmentation/kmeanpp";
 
     api
       .get(API, {
-        params: { imagePath: imagePath },
+        params: { imagePath: imagePath, nCluster: 2 },
         responseType: "blob",
       })
       .then((res) => {
         const imgURL = URL.createObjectURL(res.data);
+        // console.log(res.headers)
 
         if (gridArea == 0) {
           setLeftOpts(e.target.value);
           setLeft(imgURL);
+          if (e.target.value === 3) {
+            setLeftCluster(2);
+            const clusters = res.headers["x-max-cluster"];
+            setLeftMaxCluster(Array.from({ length: clusters }, (_, i) => i));
+          }
         } else {
           setRightOpts(e.target.value);
           setRight(imgURL);
+          if (e.target.value === 3) {
+            setRightCluster(2);
+            const clusters = +res.headers["x-max-cluster"];
+            setRightMaxCluster(
+              Array.from({ length: clusters }, (_, i) => i + 1)
+            );
+          }
         }
       })
       .catch((err) => alert(`Lỗi: ${err.message}`));
+  };
+
+  const handleChangeCluster = (e, side) => {
+    const API = "/image-process/segmentation/kmeanpp";
+    api
+      .get(API, {
+        params: {
+          imagePath: imagePath,
+          nCluster: e.target.value,
+        },
+        responseType: 'blob',
+      })
+      .then((res) => {
+        const imgURL = URL.createObjectURL(res.data);
+
+        if (side === 0) {
+          setLeftCluster(e.target.value);
+          setLeft(imgURL);
+        } else {
+          setRightCluster(e.target.value);
+          setRight(imgURL);
+        }
+      })
+      .catch(err => alert(`Lỗi: ${err.message}`));
   };
 
   return (
@@ -136,6 +177,17 @@ export default function Home() {
                 <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
                 <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
               </Select>
+              {leftOpts === 3 && (
+                <Select
+                  value={leftCluster}
+                  onChange={(e) => handleChangeCluster(e, 0)}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {leftMaxCluster.map((item) => (
+                    <MenuItem value={item}>K = {item}</MenuItem>
+                  ))}
+                </Select>
+              )}
               <br />
               <Image src={left} />
             </Grid>
@@ -151,6 +203,17 @@ export default function Home() {
                 <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
                 <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
               </Select>
+              {rightOpts === 3 && (
+                <Select
+                  value={rightCluster}
+                  onChange={(e) => handleChangeCluster(e, 1)}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {rightMaxCluster.map((item) => (
+                    <MenuItem value={item}>K = {item}</MenuItem>
+                  ))}
+                </Select>
+              )}
               <br />
               <Image src={right} />
             </Grid>
