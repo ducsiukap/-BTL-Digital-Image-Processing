@@ -52,7 +52,7 @@ class ImageProcessing:
             # print(otsuThreshold, sigma2B[otsuThreshold])
 
             # output
-            outImg = (img <= otsuThreshold).astype(np.uint8)*255
+            outImg = (img > otsuThreshold).astype(np.uint8)*255
 
             img_bytes = io.BytesIO()
             # iio.imwrite(img_bytes, img, extension=".png")
@@ -112,7 +112,7 @@ class ImageProcessing:
                 M[c] = e
 
             clusters = grayCluster.values()
-            euclide = 1e-4
+            euclide = 1e-10
             loops = 0
             while(True):
                 loops += 1

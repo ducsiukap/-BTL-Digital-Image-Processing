@@ -43,6 +43,7 @@ export default function Home() {
 
   const [original, setOriginal] = useState(null);
   const [imagePath, setImagePath] = useState(null);
+  const [rgbImagePath, setRgbImagePath] = useState(null);
 
   const navigate = useNavigate();
 
@@ -54,13 +55,14 @@ export default function Home() {
     formData.append("file", image);
 
     api
-      .post("/image/upload", formData, {
+      .post("/v2/image/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       })
       .then((res) => {
-        setImagePath(res.data.imagePath);
+        setImagePath(res.data.grayImgPath);
+        setRgbImagePath(res.data.rgbImgPath)
 
         const imgURL = URL.createObjectURL(image);
         setOriginal(imgURL);
@@ -87,13 +89,13 @@ export default function Home() {
     }
 
     // otsu
-    let API = `/image-process/threshold/otsu`;
+    let API = `/v2/image-process/threshold/otsu`;
     // or kmean
-    if (e.target.value === 3) API = "/image-process/segmentation/kmeanpp";
+    if (e.target.value === 3) API = "/v2/image-process/segmentation/kmeanpp";
 
     api
       .get(API, {
-        params: { imagePath: imagePath, nCluster: 2 },
+        params: { imagePath: e.target.value==3 ? rgbImagePath: imagePath, nCluster: 2 },
         responseType: "blob",
       })
       .then((res) => {
@@ -106,6 +108,7 @@ export default function Home() {
           if (e.target.value === 3) {
             setLeftCluster(2);
             const clusters = res.headers["x-max-cluster"];
+            alert('Max clusters: ' + clusters)
             setLeftMaxCluster(Array.from({ length: clusters }, (_, i) => i + 1));
           }
         } else {
@@ -126,11 +129,11 @@ export default function Home() {
   const handleChangeCluster = (e, side) => {
     if (side == 0) setLeft(loadingGIF);
     else setRight(loadingGIF);
-    const API = "/image-process/segmentation/kmeanpp";
+    const API = "/v2/image-process/segmentation/kmeanpp";
     api
       .get(API, {
         params: {
-          imagePath: imagePath,
+          imagePath: rgbImagePath,
           nCluster: e.target.value,
         },
         responseType: "blob",
@@ -175,8 +178,8 @@ export default function Home() {
             onChange={(e) => handleUploadImage(e)}
           />
         </Button>
-        <Button variant="text" onClick={() => navigate("/beta")}>
-          Try beta version
+        <Button variant="text" onClick={() => navigate("/")}>
+          Back to Offical Version
         </Button>
       </Box>
 
