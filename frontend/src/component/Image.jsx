@@ -3,11 +3,15 @@ export default function Image({ src }) {
     <img
       src={src}
       style={{
-        border: "3px solid red",
-        borderRadius: "8px",
-        margin: "5px",
-        maxWidth: "48vw",
-        maxHeight: "640px",
+        // border: "8px solid darkred",
+        // borderRadius: "8px",
+        // margin: "40",
+        width: "auto",
+        maxWidth: "100%",
+        // maxWidth: "49vw",
+        maxHeight: "500px",
+        minHeight: "500px",
+        // height: "auto"
       }}
     />
   );

@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../api/axios";
 import Image from "../component/Image";
-import loadingGIF from '../assets/loading.gif'
+import loadingGIF from "../assets/loading.gif";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -62,7 +62,7 @@ export default function Home() {
       })
       .then((res) => {
         setImagePath(res.data.grayImgPath);
-        setRgbImagePath(res.data.rgbImgPath)
+        setRgbImagePath(res.data.rgbImgPath);
 
         const imgURL = URL.createObjectURL(image);
         setOriginal(imgURL);
@@ -95,7 +95,10 @@ export default function Home() {
 
     api
       .get(API, {
-        params: { imagePath: e.target.value==3 ? rgbImagePath: imagePath, nCluster: 2 },
+        params: {
+          imagePath: e.target.value == 3 ? rgbImagePath : imagePath,
+          nCluster: 2,
+        },
         responseType: "blob",
       })
       .then((res) => {
@@ -108,8 +111,10 @@ export default function Home() {
           if (e.target.value === 3) {
             setLeftCluster(2);
             const clusters = res.headers["x-max-cluster"];
-            alert('Max clusters: ' + clusters)
-            setLeftMaxCluster(Array.from({ length: clusters }, (_, i) => i + 1));
+            // alert("Max clusters: " + clusters);
+            setLeftMaxCluster(
+              Array.from({ length: clusters }, (_, i) => i + 1)
+            );
           }
         } else {
           setRightOpts(e.target.value);
@@ -153,11 +158,14 @@ export default function Home() {
   };
 
   return (
-    <Stack gap={1} sx={{ width: "100vw", height: "100vh" , alignItems: "center" }}>
+    <Stack
+      gap={1}
+      sx={{ width: "100vw", height: "100vh", alignItems: "center" }}
+    >
       <Box
         sx={{
           display: "flex",
-          width: 'fit-content',
+          width: "fit-content",
           flexDirection: "column",
           m: imagePath ? 3 : 50,
           // border: '1px solid black'
@@ -170,7 +178,7 @@ export default function Home() {
           tabIndex={-1}
           startIcon={<CloudUpload />}
           size={imagePath ? "medium" : "large"}
-          sx={{mb: 1}}
+          sx={{ mb: 1 }}
         >
           Tải ảnh lên
           <VisuallyHiddenInput
@@ -179,66 +187,86 @@ export default function Home() {
           />
         </Button>
         <Button variant="text" onClick={() => navigate("/")}>
-          Back to Offical Version
+          Official Version
         </Button>
       </Box>
 
-      {imagePath && <Divider />}
-
       {imagePath && (
         <Box>
-          <Grid container>
-            <Grid size={6}>
-              <Select
-                value={leftOpts}
-                onChange={(e) => handleChangeSelect(e, 0)}
-                sx={{ fontWeight: 600 }}
-              >
-                <MenuItem value={1} selected={true}>
-                  Ảnh gốc
-                </MenuItem>
-                <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
-                <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
-              </Select>
-              {leftOpts === 3 && (
+          <Grid container width="100vw">
+            <Grid
+              size={6}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+              gap={2}
+            >
+              <div>
                 <Select
-                  value={leftCluster}
-                  onChange={(e) => handleChangeCluster(e, 0)}
+                  value={leftOpts}
+                  onChange={(e) => handleChangeSelect(e, 0)}
                   sx={{ fontWeight: 600 }}
                 >
-                  {leftMaxCluster.map((item) => (
-                    <MenuItem value={item}>K = {item}</MenuItem>
-                  ))}
+                  <MenuItem value={1} selected={true}>
+                    Ảnh gốc
+                  </MenuItem>
+                  <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
+                  <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
                 </Select>
-              )}
-              <br />
-              <Image src={left} />
+                {leftOpts === 3 && (
+                  <Select
+                    value={leftCluster}
+                    onChange={(e) => handleChangeCluster(e, 0)}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    {leftMaxCluster.map((item) => (
+                      <MenuItem value={item}>K = {item}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              </div>
+              <div style={{ background: "hsl(0, 0%, 90%)", width: "100%" }}>
+                <Image src={left} />
+              </div>
             </Grid>
-            <Grid size={6}>
-              <Select
-                value={rightOpts}
-                sx={{ fontWeight: 600 }}
-                onChange={(e) => handleChangeSelect(e, 1)}
-              >
-                <MenuItem value={1} selected>
-                  Ảnh gốc
-                </MenuItem>
-                <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
-                <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
-              </Select>
-              {rightOpts === 3 && (
+            <Grid
+              size={6}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+              gap={2}
+            >
+              <div>
                 <Select
-                  value={rightCluster}
-                  onChange={(e) => handleChangeCluster(e, 1)}
+                  value={rightOpts}
                   sx={{ fontWeight: 600 }}
+                  onChange={(e) => handleChangeSelect(e, 1)}
                 >
-                  {rightMaxCluster.map((item) => (
-                    <MenuItem value={item}>K = {item}</MenuItem>
-                  ))}
+                  <MenuItem value={1} selected>
+                    Ảnh gốc
+                  </MenuItem>
+                  <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
+                  <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
                 </Select>
-              )}
-              <br />
-              <Image src={right} />
+                {rightOpts === 3 && (
+                  <Select
+                    value={rightCluster}
+                    onChange={(e) => handleChangeCluster(e, 1)}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    {rightMaxCluster.map((item) => (
+                      <MenuItem value={item}>K = {item}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              </div>
+              <div style={{ background: "hsl(0, 0%, 90%)", width: "100%" }}>
+                <Image src={right} />
+              </div>
             </Grid>
           </Grid>
         </Box>

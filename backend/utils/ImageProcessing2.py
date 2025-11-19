@@ -76,7 +76,7 @@ class ImageProcessing2:
             rgb, indices,h = np.unique(img, axis=0, return_counts=True, return_inverse=True)
             # print(rgb.shape, indices.shape)
             colors = len(rgb)
-            maximunCluster = min(25, colors)
+            maximunCluster = min(100, colors)
             K = min(nCluster, maximunCluster)
 
             # init cluster
