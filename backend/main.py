@@ -77,6 +77,18 @@ async def kmeanStardard(imagePath: str, nCluster:int = 2):
         }
         # print(headers)
         return StreamingResponse(response["bytes"], media_type="image/png", headers=headers)
+
+@app.get("/api/image-process/segmentation/kmeans")
+async def kmeanStardard(imagePath: str, nCluster:int = 2):
+    response = ImageProcessing.KmeanStandard(imagePath, nCluster)
+    if not response["success"]:
+        return res(content={"message": response["message"]}, status_code=400)
+    else:
+        headers = {
+            'X-Max-Cluster': str(response['clusters'])
+        }
+        # print(headers)
+        return StreamingResponse(response["bytes"], media_type="image/png", headers=headers)
     
 
 # API v2
@@ -127,6 +139,18 @@ async def otsuThresholding(imagePath: str):
 @app.get("/api/v2/image-process/segmentation/kmeanpp")
 async def kmeanStardard(imagePath: str, nCluster:int = 2):
     response = ImageProcessing2.KmeanPlusPlus(imagePath, nCluster)
+    if not response["success"]:
+        return res(content={"message": response["message"]}, status_code=400)
+    else:
+        headers = {
+            'X-Max-Cluster': str(response['clusters'])
+        }
+        # print(headers)
+        return StreamingResponse(response["bytes"], media_type="image/png", headers=headers)
+
+@app.get("/api/v2/image-process/segmentation/kmeans")
+async def kmeanStardard(imagePath: str, nCluster:int = 2):
+    response = ImageProcessing2.KmeanStandard(imagePath, nCluster)
     if not response["success"]:
         return res(content={"message": response["message"]}, status_code=400)
     else:

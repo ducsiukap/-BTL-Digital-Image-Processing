@@ -90,7 +90,7 @@ export default function Home() {
     let API = `/image-process/threshold/otsu`;
     // or kmean
     if (e.target.value === 3) API = "/image-process/segmentation/kmeanpp";
-
+    if (e.target.value === 4) API = "/image-process/segmentation/kmeans";
     api
       .get(API, {
         params: { imagePath: imagePath, nCluster: 2 },
@@ -103,7 +103,7 @@ export default function Home() {
         if (gridArea == 0) {
           setLeftOpts(e.target.value);
           setLeft(imgURL);
-          if (e.target.value === 3) {
+          if (e.target.value >= 3) {
             setLeftCluster(2);
             const clusters = res.headers["x-max-cluster"];
             setLeftMaxCluster(
@@ -113,7 +113,7 @@ export default function Home() {
         } else {
           setRightOpts(e.target.value);
           setRight(imgURL);
-          if (e.target.value === 3) {
+          if (e.target.value >= 3) {
             setRightCluster(2);
             const clusters = +res.headers["x-max-cluster"];
             setRightMaxCluster(
@@ -125,10 +125,11 @@ export default function Home() {
       .catch((err) => alert(`Lỗi: ${err.message}`));
   };
 
-  const handleChangeCluster = (e, side) => {
+  const handleChangeCluster = (e, side, opt) => {
     if (side == 0) setLeft(loadingGIF);
     else setRight(loadingGIF);
-    const API = "/image-process/segmentation/kmeanpp";
+    let API = "/image-process/segmentation/kmeanpp";
+    if (opt === 4) API = "/image-process/segmentation/kmeans";
     api
       .get(API, {
         params: {
@@ -207,12 +208,17 @@ export default function Home() {
                     Ảnh gốc
                   </MenuItem>
                   <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
-                  <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
+                  <MenuItem value={3}>
+                    Phân đoạn bằng Phân cụm K-means++
+                  </MenuItem>
+                  <MenuItem value={4}>
+                    Phân đoạn bằng Phân cụm K-means standard
+                  </MenuItem>
                 </Select>
-                {leftOpts === 3 && (
+                {leftOpts >= 3 && (
                   <Select
                     value={leftCluster}
-                    onChange={(e) => handleChangeCluster(e, 0)}
+                    onChange={(e) => handleChangeCluster(e, 0, leftOpts)}
                     sx={{ fontWeight: 600 }}
                   >
                     {leftMaxCluster.map((item) => (
@@ -245,11 +251,14 @@ export default function Home() {
                   </MenuItem>
                   <MenuItem value={2}>Phân đoạn bằng phương áp Otsu</MenuItem>
                   <MenuItem value={3}>Phân đoạn bằng Phân cụm K-means</MenuItem>
+                  <MenuItem value={4}>
+                    Phân đoạn bằng Phân cụm K-means standard
+                  </MenuItem>
                 </Select>
-                {rightOpts === 3 && (
+                {rightOpts >= 3 && (
                   <Select
                     value={rightCluster}
-                    onChange={(e) => handleChangeCluster(e, 1)}
+                    onChange={(e) => handleChangeCluster(e, 1, rightOpts)}
                     sx={{ fontWeight: 600 }}
                   >
                     {rightMaxCluster.map((item) => (

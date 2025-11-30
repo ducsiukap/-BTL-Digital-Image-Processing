@@ -70,24 +70,28 @@ class ImageProcessing2:
             imgShape = img.shape
             if (img.shape[2] != 3):
                 return {"success": False, "message": "image is not is RGB image."}
-            img = img.reshape(-1, 3)
+            # flatten
+            img = img.reshape(-1, 3) 
             # print(img)
 
+            # histogram
             rgb, indices,h = np.unique(img, axis=0, return_counts=True, return_inverse=True)
             # print(rgb.shape, indices.shape)
+
+            # number of colors
             colors = len(rgb)
             maximunCluster = min(100, colors)
-            K = min(nCluster, maximunCluster)
+            K = min(nCluster, maximunCluster) 
 
             # init cluster
             clusters = np.zeros((K, 3), dtype=np.float64)
-            D2min = np.full(colors, np.inf)
+            D2min = np.full(colors, np.inf) # distance
             allIndices = np.arange(colors)
             clusterIndices = []
             
             # C0
-            idx = np.random.randint(colors)
-            clusters[0] = rgb[idx]
+            idx = np.random.randint(colors) # random c0
+            clusters[0] = rgb[idx] 
             clusterIndices.append(idx)
 
             # print(clusters)
@@ -95,12 +99,12 @@ class ImageProcessing2:
             # C1-CN
             for i in range(1, K):
                 clusterNew = clusters[i-1]
-                D2minNew = np.sum((rgb - clusterNew)**2, axis=1)
-                np.minimum(D2min, D2minNew, out=D2min)
-                W = D2min*h
-                W[clusterIndices] = 0
+                D2minNew = np.sum((rgb - clusterNew)**2, axis=1) # minimum distance to latest cluster
+                np.minimum(D2min, D2minNew, out=D2min) # 
+                W = D2min*h # W
+                W[clusterIndices] = 0 
+
                 sumW = np.sum(W)
-                
                 if (sumW == 0):
                     selectableIndices = np.setdiff1d(allIndices, clusterIndices)
                     if not selectableIndices.any(): break
@@ -114,6 +118,79 @@ class ImageProcessing2:
             
             # print(grayCluster)
             # print('hi')
+
+            clusterLabel = np.zeros(colors, dtype=np.int32)
+            maximumLoopCount = 100
+            euclide = 0.01
+            for loop in range(maximumLoopCount):
+                distance = rgb[:, np.newaxis, :] - clusters[np.newaxis, :, :]
+                D2 = np.sum(distance**2, axis=2)
+
+                newLabels = np.argmin(D2, axis=1)
+                newClusters = np.zeros_like(clusters)
+
+                for k in range(K):
+                    mask = (newLabels == k)
+                    if not np.any(mask):
+                        newClusters[k] = clusters[k]
+                        continue
+                    
+                    clusterPoint = rgb[mask]
+                    clusterH = h[mask]
+                    newClusters[k] = np.sum(clusterPoint*clusterH[:, np.newaxis], axis=0)/np.sum(clusterH)
+            
+                clusterDiff = np.sum((newClusters - clusters)**2)
+                clusters = newClusters
+                clusterLabel = newLabels
+
+                if clusterDiff <= euclide:
+                    print(f"loop count: {loop}")
+                    break
+
+            labels = clusterLabel[indices]
+            outImgFlat = clusters[labels].astype(np.uint8)
+            outImg = outImgFlat.reshape(imgShape)
+
+            img_bytes = io.BytesIO()
+            # iio.imwrite(img_bytes, img, extension=".png")
+            iio.imwrite(img_bytes, outImg, extension=".jpg")
+            img_bytes.seek(0)
+
+            return {"success": True, "bytes": img_bytes, 'clusters': maximunCluster}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    @staticmethod
+    def KmeanStandard(imagePath, nCluster):
+        try :
+            img = iio.imread(imagePath)
+            imgShape = img.shape
+            if (img.shape[2] != 3):
+                return {"success": False, "message": "image is not is RGB image."}
+            # flatten
+            img = img.reshape(-1, 3) 
+            # print(img)
+
+            # histogram
+            rgb, indices,h = np.unique(img, axis=0, return_counts=True, return_inverse=True)
+            # print(rgb.shape, indices.shape)
+
+            # number of colors
+            colors = len(rgb)
+            maximunCluster = min(100, colors)
+            K = min(nCluster, maximunCluster) 
+
+            # init cluster
+            clusters = np.zeros((K, 3), dtype=np.float64)
+            D2min = np.full(colors, np.inf) # distance
+            allIndices = np.arange(colors)
+            clusterIndices = []
+            
+            # C0
+            for k in range(K):
+                idx = np.random.randint(colors) 
+                clusters[k] = rgb[idx] 
+                clusterIndices.append(idx)
 
             clusterLabel = np.zeros(colors, dtype=np.int32)
             maximumLoopCount = 100
